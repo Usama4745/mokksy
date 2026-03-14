@@ -93,6 +93,7 @@ public class dev/mokksy/mokksy/MokksyServer {
 	public final fun put (Lkotlin/jvm/functions/Function1;)Ldev/mokksy/mokksy/BuildingStep;
 	public static synthetic fun put$default (Ldev/mokksy/mokksy/MokksyServer;Ljava/lang/String;Lkotlin/reflect/KClass;Lkotlin/jvm/functions/Function1;ILjava/lang/Object;)Ldev/mokksy/mokksy/BuildingStep;
 	public final fun resetMatchCounts ()V
+	public final fun resetMatchState ()V
 	public final fun shutdownSuspend (JJLkotlin/coroutines/Continuation;)Ljava/lang/Object;
 	public static synthetic fun shutdownSuspend$default (Ldev/mokksy/mokksy/MokksyServer;JJLkotlin/coroutines/Continuation;ILjava/lang/Object;)Ljava/lang/Object;
 	public final fun startSuspend (ZLkotlin/coroutines/Continuation;)Ljava/lang/Object;
@@ -143,6 +144,7 @@ public final class dev/mokksy/mokksy/MokksyServerJava : java/lang/AutoCloseable 
 	public final fun put (Ljava/lang/Class;Ljava/util/function/Consumer;)Ldev/mokksy/mokksy/JavaBuildingStep;
 	public final fun put (Ljava/util/function/Consumer;)Ldev/mokksy/mokksy/JavaBuildingStep;
 	public final fun resetMatchCounts ()V
+	public final fun resetMatchState ()V
 	public final fun shutdown ()V
 	public final fun shutdown (J)V
 	public final fun shutdown (JJ)V
@@ -175,6 +177,7 @@ public final class dev/mokksy/mokksy/ServerConfiguration {
 }
 
 public final class dev/mokksy/mokksy/StubConfiguration {
+	public static final field Companion Ldev/mokksy/mokksy/StubConfiguration$Companion;
 	public fun <init> ()V
 	public fun <init> (Ljava/lang/String;)V
 	public fun <init> (Ljava/lang/String;Z)V
@@ -186,11 +189,24 @@ public final class dev/mokksy/mokksy/StubConfiguration {
 	public final fun copy (Ljava/lang/String;ZZ)Ldev/mokksy/mokksy/StubConfiguration;
 	public static synthetic fun copy$default (Ldev/mokksy/mokksy/StubConfiguration;Ljava/lang/String;ZZILjava/lang/Object;)Ldev/mokksy/mokksy/StubConfiguration;
 	public fun equals (Ljava/lang/Object;)Z
+	public final fun getEventuallyRemove ()Z
 	public final fun getName ()Ljava/lang/String;
 	public final fun getRemoveAfterMatch ()Z
 	public final fun getVerbose ()Z
 	public fun hashCode ()I
+	public static final fun removeAfterMatch ()Ldev/mokksy/mokksy/StubConfiguration;
+	public static final fun removeAfterMatch (Ljava/lang/String;)Ldev/mokksy/mokksy/StubConfiguration;
+	public static final fun removeAfterMatch (Ljava/lang/String;Z)Ldev/mokksy/mokksy/StubConfiguration;
+	public static final fun removeAfterMatch (Ljava/lang/String;ZZ)Ldev/mokksy/mokksy/StubConfiguration;
 	public fun toString ()Ljava/lang/String;
+}
+
+public final class dev/mokksy/mokksy/StubConfiguration$Companion {
+	public final fun removeAfterMatch ()Ldev/mokksy/mokksy/StubConfiguration;
+	public final fun removeAfterMatch (Ljava/lang/String;)Ldev/mokksy/mokksy/StubConfiguration;
+	public final fun removeAfterMatch (Ljava/lang/String;Z)Ldev/mokksy/mokksy/StubConfiguration;
+	public final fun removeAfterMatch (Ljava/lang/String;ZZ)Ldev/mokksy/mokksy/StubConfiguration;
+	public static synthetic fun removeAfterMatch$default (Ldev/mokksy/mokksy/StubConfiguration$Companion;Ljava/lang/String;ZZILjava/lang/Object;)Ldev/mokksy/mokksy/StubConfiguration;
 }
 
 public final class dev/mokksy/mokksy/kotest/MatchersKt {

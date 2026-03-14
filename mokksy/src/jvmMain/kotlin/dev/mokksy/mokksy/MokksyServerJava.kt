@@ -388,8 +388,14 @@ public class MokksyServerJava(
 
     // region Verification
 
-    /** Resets stub match counts and clears the request journal. */
-    public fun resetMatchCounts(): Unit = delegate.resetMatchCounts()
+    @Deprecated(
+        message = "Use resetMatchState() instead.",
+        replaceWith = ReplaceWith("resetMatchState()"),
+    )
+    public fun resetMatchCounts(): Unit = resetMatchState()
+
+    /** Resets stub match state and clears the request journal. */
+    public fun resetMatchState(): Unit = delegate.resetMatchState()
 
     /** Returns all stubs that were never matched. */
     public fun findAllUnmatchedStubs(): List<RequestSpecification<*>> =

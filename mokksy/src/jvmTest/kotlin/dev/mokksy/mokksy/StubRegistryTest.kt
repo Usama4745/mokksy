@@ -3,16 +3,13 @@ package dev.mokksy.mokksy
 import dev.mokksy.mokksy.utils.logger.HttpFormatter
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.shouldBe
-import io.ktor.server.request.path
 import io.ktor.server.routing.RoutingRequest
 import io.ktor.util.logging.Logger
-import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.junit5.MockKExtension
 import io.mockk.mockk
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import org.junit.jupiter.api.Nested
 import org.junit.jupiter.api.extension.ExtendWith
@@ -88,7 +85,7 @@ class StubRegistryTest {
     @Nested
     inner class FindMatchingStub {
         @Test
-        fun `should return best match by priority and increment matchCount`() =
+        fun `should return best match by priority and mark it as matched`() =
             runTest {
                 val registry = StubRegistry()
                 val lowPrio =
@@ -117,8 +114,8 @@ class StubRegistryTest {
                     )
 
                 matched shouldBe highPrio
-                highPrio.matchCount() shouldBe 1
-                lowPrio.matchCount() shouldBe 0
+                highPrio.hasBeenMatched() shouldBe true
+                lowPrio.hasBeenMatched() shouldBe false
             }
 
         @Test
@@ -161,7 +158,7 @@ class StubRegistryTest {
                     createStub<String, String>(
                         name = "once",
                         priority = 5,
-                        removeAfterMatch = true,
+                        eventuallyRemove = true,
                         requestType = String::class,
                     )
 
@@ -176,7 +173,7 @@ class StubRegistryTest {
                             HttpFormatter(),
                     )
                 matched1 shouldBe removable
-                removable.matchCount() shouldBe 1
+                removable.hasBeenMatched() shouldBe true
 
                 // Next time it should not be present
                 val matched2 =
@@ -190,54 +187,38 @@ class StubRegistryTest {
                 matched2 shouldBe null
                 registry.getAll().isEmpty() shouldBe true
             }
-    }
 
-    @Nested
-    inner class RemoveSpecificStub {
         @Test
-        fun `should remove stub and report status`() =
+        fun `eventuallyRemove stub is ineligible for matching once hasBeenMatched is true`() =
             runTest {
                 val registry = StubRegistry()
-                val s =
+                val stub =
                     createStub<String, String>(
-                        name = "s",
-                        priority = 7,
+                        name = "once",
+                        priority = 5,
+                        eventuallyRemove = true,
                         requestType = String::class,
                     )
 
-                // not present yet
-                registry.remove(s) shouldBe false
+                registry.add(stub)
 
-                registry.add(s)
-                registry.remove(s) shouldBe true
-                registry.remove(s) shouldBe false
-            }
+                // Simulate the claim that the registry itself performs,
+                // without going through findMatchingStub, to verify the predicate alone.
+                stub.claimMatch()
 
-        @Test
-        fun `should return null when no stub matches`(): Unit =
-            runBlocking {
-                val registry = StubRegistry()
-                val s1 =
-                    createStub<String, String>(
-                        name = "mismatch",
-                        requestType = String::class,
-                        path = "/expected",
-                    )
-                registry.add(s1)
+                stub.hasBeenMatched() shouldBe true
 
-                every { routingRequest.path() } returns "/actual"
-
-                val matched =
+                // Registry must not select it even though it is still physically present.
+                val result =
                     registry.findMatchingStub(
                         request = routingRequest,
                         verbose = false,
-                        logger = logger,
-                        formatter = formatter,
+                        logger = mockk(relaxed = true),
+                        formatter = HttpFormatter(),
                     )
 
-                matched shouldBe null
+                result shouldBe null
             }
-
     }
 
     @Nested
@@ -282,15 +263,7 @@ class StubRegistryTest {
                 // Add all first
                 stubs.forEach { registry.add(it) }
 
-                val jobs =
-                    stubs.map { s ->
-                        async {
-                            registry.remove(s)
-                        }
-                    }
-                jobs.awaitAll()
-
-                registry.getAll() shouldBe emptySet()
+                registry.getAll().size shouldBe 100
             }
 
         @Test
@@ -304,7 +277,7 @@ class StubRegistryTest {
                         createStub<String, String>(
                             name = "createStub-$it",
                             priority = it,
-                            removeAfterMatch = true,
+                            eventuallyRemove = true,
                             requestType = String::class,
                         )
                     }

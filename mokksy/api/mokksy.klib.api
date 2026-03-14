@@ -175,6 +175,8 @@ final class dev.mokksy.mokksy/ServerConfiguration { // dev.mokksy.mokksy/ServerC
 final class dev.mokksy.mokksy/StubConfiguration { // dev.mokksy.mokksy/StubConfiguration|null[0]
     constructor <init>(kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ...) // dev.mokksy.mokksy/StubConfiguration.<init>|<init>(kotlin.String?;kotlin.Boolean;kotlin.Boolean){}[0]
 
+    final val eventuallyRemove // dev.mokksy.mokksy/StubConfiguration.eventuallyRemove|{}eventuallyRemove[0]
+        final fun <get-eventuallyRemove>(): kotlin/Boolean // dev.mokksy.mokksy/StubConfiguration.eventuallyRemove.<get-eventuallyRemove>|<get-eventuallyRemove>(){}[0]
     final val name // dev.mokksy.mokksy/StubConfiguration.name|{}name[0]
         final fun <get-name>(): kotlin/String? // dev.mokksy.mokksy/StubConfiguration.name.<get-name>|<get-name>(){}[0]
     final val removeAfterMatch // dev.mokksy.mokksy/StubConfiguration.removeAfterMatch|{}removeAfterMatch[0]
@@ -189,6 +191,10 @@ final class dev.mokksy.mokksy/StubConfiguration { // dev.mokksy.mokksy/StubConfi
     final fun equals(kotlin/Any?): kotlin/Boolean // dev.mokksy.mokksy/StubConfiguration.equals|equals(kotlin.Any?){}[0]
     final fun hashCode(): kotlin/Int // dev.mokksy.mokksy/StubConfiguration.hashCode|hashCode(){}[0]
     final fun toString(): kotlin/String // dev.mokksy.mokksy/StubConfiguration.toString|toString(){}[0]
+
+    final object Companion { // dev.mokksy.mokksy/StubConfiguration.Companion|null[0]
+        final fun removeAfterMatch(kotlin/String? = ..., kotlin/Boolean = ..., kotlin/Boolean = ...): dev.mokksy.mokksy/StubConfiguration // dev.mokksy.mokksy/StubConfiguration.Companion.removeAfterMatch|removeAfterMatch(kotlin.String?;kotlin.Boolean;kotlin.Boolean){}[0]
+    }
 }
 
 open class <#A: kotlin/Any, #B: kotlin/Any> dev.mokksy.mokksy.response/ResponseDefinitionBuilder : dev.mokksy.mokksy.response/AbstractResponseDefinitionBuilder<#A, #B> { // dev.mokksy.mokksy.response/ResponseDefinitionBuilder|null[0]
@@ -380,6 +386,7 @@ open class dev.mokksy.mokksy/MokksyServer { // dev.mokksy.mokksy/MokksyServer|nu
     final fun post(kotlin/Function1<dev.mokksy.mokksy.request/RequestSpecificationBuilder<kotlin/String>, kotlin/Unit>): dev.mokksy.mokksy/BuildingStep<kotlin/String> // dev.mokksy.mokksy/MokksyServer.post|post(kotlin.Function1<dev.mokksy.mokksy.request.RequestSpecificationBuilder<kotlin.String>,kotlin.Unit>){}[0]
     final fun put(kotlin/Function1<dev.mokksy.mokksy.request/RequestSpecificationBuilder<kotlin/String>, kotlin/Unit>): dev.mokksy.mokksy/BuildingStep<kotlin/String> // dev.mokksy.mokksy/MokksyServer.put|put(kotlin.Function1<dev.mokksy.mokksy.request.RequestSpecificationBuilder<kotlin.String>,kotlin.Unit>){}[0]
     final fun resetMatchCounts() // dev.mokksy.mokksy/MokksyServer.resetMatchCounts|resetMatchCounts(){}[0]
+    final fun resetMatchState() // dev.mokksy.mokksy/MokksyServer.resetMatchState|resetMatchState(){}[0]
     final fun verifyNoUnexpectedRequests() // dev.mokksy.mokksy/MokksyServer.verifyNoUnexpectedRequests|verifyNoUnexpectedRequests(){}[0]
     final fun verifyNoUnmatchedStubs() // dev.mokksy.mokksy/MokksyServer.verifyNoUnmatchedStubs|verifyNoUnmatchedStubs(){}[0]
     final suspend fun awaitStarted() // dev.mokksy.mokksy/MokksyServer.awaitStarted|awaitStarted(){}[0]
