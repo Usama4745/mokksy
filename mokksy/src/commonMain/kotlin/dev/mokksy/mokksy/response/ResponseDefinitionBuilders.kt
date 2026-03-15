@@ -5,7 +5,9 @@ import dev.mokksy.mokksy.request.CapturedRequest
 import dev.mokksy.mokksy.utils.logger.HttpFormatter
 import io.ktor.http.ContentType
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.withCharset
 import io.ktor.server.response.ResponseHeaders
+import io.ktor.utils.io.charsets.Charsets
 import kotlinx.coroutines.flow.Flow
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -255,22 +257,23 @@ public open class StreamingResponseDefinitionBuilder<P : Any, T>(
     public val chunkContentType: ContentType? = null,
     private val formatter: HttpFormatter,
 ) : AbstractResponseDefinitionBuilder<P, T>() {
+    /**
+     * The `Content-Type` of the HTTP response. Defaults to `text/event-stream; charset=UTF-8`.
+     *
+     * Override when the stream carries a different media type, e.g. `application/x-ndjson`.
+     */
+    public var contentType: ContentType = ContentType.Text.EventStream.withCharset(Charsets.UTF_8)
+
     init {
         this.httpStatus = httpStatus
     }
 
     /**
-     * Builds an instance of [StreamResponseDefinition].
-     *
-     * This method finalizes the construction of a [StreamResponseDefinition] by encapsulating
-     * the data flow, chunked list, HTTP status code, and headers defined in the current instance
-     * of the builder. The resulting [StreamResponseDefinition] can then be used to represent
-     * a streaming response.
-     *
-     * @param P The type of the request body.
-     * @param T The type of data being streamed.
-     * @return A fully constructed [StreamResponseDefinition] instance containing the configured response details.
-     */
+         * Constructs a StreamResponseDefinition populated from the builder's configured values.
+         *
+         * @return A StreamResponseDefinition containing the configured chunk flow (if any), immutable chunk list,
+         * HTTP status, merged headers, per-chunk and overall delays, formatter, chunk content type and overall content type.
+         */
     public override fun build(): StreamResponseDefinition<P, T> =
         StreamResponseDefinition(
             chunkFlow = flow,
@@ -281,5 +284,6 @@ public open class StreamingResponseDefinitionBuilder<P : Any, T>(
             delay = delay,
             formatter = formatter,
             chunkContentType = chunkContentType,
+            contentType = contentType,
         )
 }
