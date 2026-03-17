@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.DefaultRequest
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.plugins.sse.SSE
+import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
 
 /**
@@ -20,11 +21,13 @@ internal fun createKtorSSEClient(port: Int): HttpClient {
 
     return HttpClient {
         install(ContentNegotiation) {
-            Json {
-                prettyPrint = true
-                isLenient = true
-                ignoreUnknownKeys = true
-            }
+            json(
+                Json {
+                    prettyPrint = true
+                    isLenient = true
+                    ignoreUnknownKeys = true
+                },
+            )
         }
         install(SSE) {
             showRetryEvents()
@@ -50,12 +53,14 @@ internal fun createKtorClient(port: Int): HttpClient {
     }
     return HttpClient {
         install(ContentNegotiation) {
-            Json {
-                // Configure JSON serialization
-                prettyPrint = true
-                isLenient = true
-                ignoreUnknownKeys = true
-            }
+            json(
+                Json {
+                    // Configure JSON serialization
+                    prettyPrint = true
+                    isLenient = true
+                    ignoreUnknownKeys = false
+                },
+            )
         }
         install(DefaultRequest) {
             url("http://127.0.0.1:$port") // Set the base URL

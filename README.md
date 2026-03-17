@@ -38,11 +38,11 @@
 * [Responding with predefined responses](#responding-with-predefined-responses)
   * [GET request](#get-request)
   * [POST request](#post-request)
+  * [Typed request body](#typed-request-body)
   * [Status-only responses](#status-only-responses)
 * [Server-Side Events (SSE) response](#server-side-events-sse-response)
 * [Request Specification Matchers](#request-specification-matchers)
   * [Stub Specificity](#stub-specificity)
-  * [Typed body matching](#typed-body-matching)
   * [Priority Example](#priority-example)
 * [Verifying Requests](#verifying-requests)
   * [Verify all stubs were triggered](#verify-all-stubs-were-triggered)
@@ -131,6 +131,9 @@ val client = HttpClient {
   install(DefaultRequest) {
     url(mokksy.baseUrl())
   }
+  install(ContentNegotiation) {
+    json()
+  }
 }
 ```
 
@@ -144,17 +147,21 @@ GET request example:
 
 <!--- CLEAR -->
 <!--- INCLUDE
-import dev.mokksy.Mokksy
+import dev.mokksy.mokksy.Mokksy
+import dev.mokksy.mokksy.MokksyServer
+import dev.mokksy.mokksy.post
+import dev.mokksy.mokksy.start
 import io.kotest.matchers.equals.beEqual
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.DefaultRequest
+import io.ktor.client.call.body
 import io.ktor.client.request.get
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
-import io.ktor.http.contentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.withCharsetIfNeeded
@@ -163,16 +170,23 @@ import kotlin.random.Random
 import kotlin.time.Duration.Companion.milliseconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.Serializable
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.contentType
+import io.ktor.serialization.kotlinx.json.json
 import org.junit.jupiter.api.Test
 
 class ReadmeTest {
-    val mokksy = Mokksy.create().start()
-    val client = HttpClient {
-        install(DefaultRequest) {
-            url(mokksy.baseUrl())
+    val mokksy: MokksyServer = Mokksy(verbose = true).start()
+    val client: HttpClient =
+        HttpClient {
+            install(DefaultRequest) {
+                url(mokksy.baseUrl())
+            }
+            install(ContentNegotiation) {
+                json()
+            }
         }
-    }
 -->
 <!--- INCLUDE
   @Test
@@ -270,15 +284,111 @@ val result =
   }
 
 // then
-result.status shouldBe HttpStatusCode.Created
-result.bodyAsText() shouldBe expectedResponse
-result.headers["Location"] shouldBe "/things/$id"
-result.headers["Foo"] shouldBe "bar"
+result shouldNotBeNull {
+  status shouldBe HttpStatusCode.Created
+  bodyAsText() shouldBe expectedResponse
+  headers["Location"] shouldBe "/things/$id"
+  headers["Foo"] shouldBe "bar"
+}
 ```
 
 <!--- INCLUDE
   }
 -->
+
+### Typed request body
+
+When the request body type is known at compile time, use the **reified** overloads to let the compiler infer the type — no explicit `::class` argument required:
+
+```kotlin
+@Serializable
+@JvmRecord
+data class CreateItemRequest(val name: String)
+
+@Serializable
+@JvmRecord
+data class CreateItemResponse(val message: String)
+```
+
+<!--- INCLUDE
+  @Test
+  suspend fun testReified() {
+-->
+
+```kotlin
+val itemName = "Widget"
+
+mokksy.post<CreateItemRequest>(name = "create-item") {
+  path("/items")
+  bodyMatchesPredicate("name should match") { it?.name == itemName }
+} respondsWith {
+  body = CreateItemResponse("Hello, $itemName!")
+  httpStatus = HttpStatusCode.Created
+  headers += "Foo" to "bar"
+}
+
+val result =
+  client.post("/items") {
+    contentType(ContentType.Application.Json)
+    setBody(CreateItemRequest(itemName))
+  }
+
+result shouldNotBeNull {
+  status shouldBe HttpStatusCode.Created
+  headers["Foo"] shouldBe "bar"
+  body<CreateItemResponse>().message shouldBe "Hello, $itemName!"
+}
+```
+
+<!--- INCLUDE
+  }
+-->
+
+Reified overloads are provided for all HTTP verbs (`get`, `post`, `put`, `delete`, `patch`, `head`,
+`options`) and the generic `method` function. Two overloads exist per verb: one taking an optional
+stub name (`name: String? = null`) and one taking a [`StubConfiguration`](#stub-specificity).
+
+The deserialized request body is accessible inside the response lambda as `request.body()`.
+
+When the type is determined at runtime or when you want an explicit name on the stub,
+pass a `KClass` token using the named `requestType` parameter:
+
+<!--- INCLUDE
+  @Test
+  suspend fun testKClass() {
+-->
+
+```kotlin
+mokksy.post(requestType = CreateItemRequest::class) {
+    path("/items")
+    bodyMatchesPredicate { it?.name == "widget" }
+} respondsWith {
+    body = CreateItemResponse("Hello, widget!")
+    httpStatus = HttpStatusCode.Created
+}
+
+val result =
+  client.post("/items") {
+    contentType(ContentType.Application.Json)
+    setBody(CreateItemRequest("widget"))
+  }
+
+result.status shouldBe HttpStatusCode.Created
+result.body<CreateItemResponse>().message shouldBe "Hello, widget!"
+```
+
+<!--- INCLUDE
+  }
+-->
+
+Java callers use `CreateItemRequest.class` via the [Java API](#java-api):
+`mokksy.post(CreateItemRequest.class, spec -> spec.path("/items").bodyMatchesPredicate(req -> "widget".equals(req.getName())))`.
+
+Deserialization uses Ktor's `ContentNegotiation` plugin. For projects that use Jackson instead of
+`kotlinx.serialization`, create the server in with `MokksyJackson.create()` (Java API) — see [Jackson support](#jackson-support).
+
+When no stub matches and verbose mode is on (`Mokksy(verbose = true)`), Mokksy logs the closest
+partial match and its failed conditions to help diagnose the mismatch.
 
 ### Status-only responses
 
@@ -335,9 +445,11 @@ mokksy.post {
 val result = client.post("/sse")
 
 // then
-result.status shouldBe HttpStatusCode.OK
-result.contentType() shouldBe ContentType.Text.EventStream.withCharsetIfNeeded(Charsets.UTF_8)
-result.bodyAsText() shouldBe "data: One\r\ndata: Two\r\n"
+result shouldNotBeNull {
+  status shouldBe HttpStatusCode.OK
+  contentType() shouldBe ContentType.Text.EventStream.withCharsetIfNeeded(Charsets.UTF_8)
+  bodyAsText() shouldBe "data: One\r\ndata: Two\r\n"
+}
 ```
 
 <!--- INCLUDE
@@ -353,7 +465,7 @@ Mokksy provides various matcher types to specify conditions for matching incomin
 - **Content matchers** — `bodyContains("value")` checks if the raw body string contains a substring;
   `bodyString += contain("value")` adds a Kotest matcher directly
 - **Predicate matchers** — `bodyMatchesPredicate { it?.name == "foo" }` matches against the typed,
-  deserialized request body
+  deserialized request body — see [Typed request body](#typed-request-body) for the full API
 - **Call matchers** — `successCallMatcher` matches if a function called with the body does not throw
 - **Priority** — `priority = 10` on `RequestSpecificationBuilder` sets the `RequestSpecification.priority`
   of the stub; lower values indicate higher priority. Default is `Int.MAX_VALUE`.
@@ -418,39 +530,6 @@ response.status shouldBe HttpStatusCode.NoContent
 }
 -->
 <!--- KNIT example-readme-01.kt -->
-
-### Typed body matching
-
-When the request body is a structured object, use `bodyMatchesPredicate` to match against the
-deserialized payload instead of raw string operations. Pass the type as a reified parameter (Kotlin)
-or a `KClass` / `Class` token (Kotlin/Java):
-
-```kotlin
-// Kotlin — reified inline extension (hides from Java callers)
-mokksy.post<CreateItemRequest> {
-    path("/items")
-    bodyMatchesPredicate { it?.name == "widget" }
-} respondsWith {
-    body = """{"id":"1"}"""
-    httpStatus = HttpStatusCode.Created
-}
-
-// Kotlin — explicit KClass (works with the Mokksy Java wrapper too)
-mokksy.post(CreateItemRequest::class) {
-    path("/items")
-    bodyMatchesPredicate { it?.name == "widget" }
-} respondsWith {
-    body = """{"id":"1"}"""
-    httpStatus = HttpStatusCode.Created
-}
-```
-
-Deserialization uses Ktor's `ContentNegotiation` plugin. For projects that use Jackson instead of
-kotlinx.serialization, create the server with `MokksyJackson.create()` — see [Jackson support](#jackson-support).
-
-When no stub matches and verbose mode is enabled 
-(`Mokksy(verbose = true)` / `Mokksy.create(Mokksy.create("127.0.0.1", 0, true))` for Java), 
-Mokksy logs the closest partial match and its failed conditions to help you diagnose the mismatch.
 
 ### Priority Example
 
