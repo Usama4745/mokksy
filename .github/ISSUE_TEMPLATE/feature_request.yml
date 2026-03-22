@@ -1,0 +1,42 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+title: "[Feature] "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement to Mokksy! Please provide as much context as possible.
+
+  - type: textarea
+    id: motivation
+    attributes:
+      label: Problem / motivation
+      description: What problem does this feature solve? What use case does it enable?
+      placeholder: "I'm trying to… but currently…"
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: Describe the feature you'd like, including any API design ideas.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Are there workarounds or alternative approaches you've already tried?
+    validations:
+      required: false
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional context
+      description: Any other details, links, or references that might help.
+    validations:
+      required: false
