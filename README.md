@@ -701,6 +701,7 @@ Mokksy records incoming requests in a `RequestJournal`. The recording mode is co
 
 | Mode                           | Behaviour                                                                                                   |
 |--------------------------------|-------------------------------------------------------------------------------------------------------------|
+| `JournalMode.NONE`             | Disables request recording entirely. `verifyNoUnexpectedRequests` throws `IllegalStateException`.           |
 | `JournalMode.LEAN` _(default)_ | Records only requests with no matching stub. Lower overhead; sufficient for `verifyNoUnexpectedRequests()`. |
 | `JournalMode.FULL`             | Records all incoming requests — both matched and unmatched.                                                 |
 
