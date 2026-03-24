@@ -11,6 +11,8 @@ import kotlin.jvm.JvmOverloads
 public enum class JournalMode {
     /**
      * This mode disables request recording entirely.
+     * Journal-dependent methods like [MokksyServer.verifyNoUnexpectedRequests] and
+     * [MokksyServer.findAllUnexpectedRequests] throw [IllegalStateException] when active.
      */
     NONE,
 

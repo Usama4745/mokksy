@@ -768,7 +768,6 @@ public class MokksyServer
          * @throws IllegalStateException when [configuration.journalMode] is [JournalMode.NONE].
          */
         public fun verifyNoUnexpectedRequests() {
-            ensureJournalAvailable()
             val unmatched = findAllUnexpectedRequests()
             if (unmatched.isNotEmpty()) {
                 throw AssertionError(
