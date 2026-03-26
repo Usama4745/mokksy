@@ -7,7 +7,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 internal class VerifyJournalModeNoneIT {
-
     private lateinit var mokksy: MokksyServer
 
     @BeforeEach
@@ -23,17 +22,28 @@ internal class VerifyJournalModeNoneIT {
 
     @Test
     fun `findAllUnexpectedRequests should throw IllegalStateException when using NONE mode`() {
-        val error = shouldThrow<IllegalStateException> {
-            mokksy.findAllUnexpectedRequests()
-        }
+        val error =
+            shouldThrow<IllegalStateException> {
+                mokksy.findAllUnexpectedRequests()
+            }
         error.message shouldContain "JournalMode.NONE"
     }
 
     @Test
     fun `verifyNoUnexpectedRequests should throw IllegalStateException when using NONE mode`() {
-        val error = shouldThrow<IllegalStateException> {
-            mokksy.verifyNoUnexpectedRequests()
-        }
+        val error =
+            shouldThrow<IllegalStateException> {
+                mokksy.verifyNoUnexpectedRequests()
+            }
+        error.message shouldContain "JournalMode.NONE"
+    }
+
+    @Test
+    fun `findAllMatchedRequests should throw IllegalStateException when using NONE mode`() {
+        val error =
+            shouldThrow<IllegalStateException> {
+                mokksy.findAllMatchedRequests()
+            }
         error.message shouldContain "JournalMode.NONE"
     }
 }

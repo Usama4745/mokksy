@@ -676,8 +676,10 @@ public class MokksyServer
          *
          * @return A list of [RecordedRequest] snapshots, empty in [JournalMode.LEAN].
          */
-        public fun findAllMatchedRequests(): List<RecordedRequest> =
-            requestJournal.getMatched()
+        public fun findAllMatchedRequests(): List<RecordedRequest> {
+            ensureJournalAvailable()
+            return requestJournal.getMatched()
+        }
 
         /**
          * Resets the match state of all currently registered stubs to unmatched,
